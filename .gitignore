@@ -1,0 +1,20 @@
+# Credenciais e segredos (NUNCA versionar)
+.env
+
+# Dados baixados (dados brutos não vão para o repositório)
+data/
+*.zip
+*.csv
+
+# Cache do Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Ambiente virtual
+venv/
+.venv/
+env/
