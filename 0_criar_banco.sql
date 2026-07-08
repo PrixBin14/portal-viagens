@@ -1,23 +1,9 @@
--- =====================================================================
--- 0_criar_banco.sql
--- ---------------------------------------------------------------------
--- Cria o banco 'transparencia' e as 8 tabelas do pipeline:
---   4 tabelas RAW    -> copia fiel do CSV (tudo VARCHAR, sem constraints)
---   4 tabelas SILVER -> dados tipados, com PK, FK e constraints
--- Banco: MySQL / MariaDB (XAMPP)
--- =====================================================================
-
 CREATE DATABASE IF NOT EXISTS transparencia
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_general_ci;
 
 USE transparencia;
 
--- ---------------------------------------------------------------------
--- Limpeza: derruba as tabelas na ordem INVERSA das dependencias
--- (as "filhas" com FK primeiro, depois a "mae" silver_viagem).
--- Assim o script pode ser re-executado sem erro de chave estrangeira.
--- ---------------------------------------------------------------------
 DROP TABLE IF EXISTS silver_trecho;
 DROP TABLE IF EXISTS silver_passagem;
 DROP TABLE IF EXISTS silver_pagamento;
@@ -26,12 +12,6 @@ DROP TABLE IF EXISTS raw_trecho;
 DROP TABLE IF EXISTS raw_passagem;
 DROP TABLE IF EXISTS raw_pagamento;
 DROP TABLE IF EXISTS raw_viagem;
-
--- =====================================================================
--- CAMADA RAW  -  copia fiel dos CSVs (todas as colunas VARCHAR)
--- Replica o CSV inteiro, inclusive colunas que a Silver nao usa
--- (cpf, funcao, dados de volta da passagem, etc.).
--- =====================================================================
 
 CREATE TABLE raw_viagem (
     id_viagem               VARCHAR(255),
@@ -110,21 +90,13 @@ CREATE TABLE raw_trecho (
     missao            VARCHAR(255)
 ) ENGINE=InnoDB;
 
--- =====================================================================
--- CAMADA SILVER  -  dados tipados, com PK, FK e constraints
--- Cada tabela Silver tem, ALEM da PK (e da FK quando aplicavel),
--- 2 constraints extras declaradas dentro do CREATE TABLE.
--- =====================================================================
-
--- silver_viagem e a tabela "mae": precisa existir ANTES das que a
--- referenciam por chave estrangeira (pagamento, passagem, trecho).
 CREATE TABLE silver_viagem (
     id_viagem            VARCHAR(20)   NOT NULL,
     num_proposta         VARCHAR(20),
     situacao             VARCHAR(50),
     viagem_urgente       VARCHAR(5),
     cod_orgao_superior   VARCHAR(20),
-    nome_orgao_superior  VARCHAR(255)  NOT NULL,        -- constraint extra 1 (NOT NULL)
+    nome_orgao_superior  VARCHAR(255)  NOT NULL,
     nome_viajante        VARCHAR(255),
     cargo                VARCHAR(255),
     data_inicio          DATE,
@@ -135,10 +107,10 @@ CREATE TABLE silver_viagem (
     valor_passagens      DECIMAL(10,2),
     valor_devolucao      DECIMAL(10,2),
     valor_outros_gastos  DECIMAL(10,2),
-    valor_total          DECIMAL(12,2),                 -- coluna calculada (2_transformar.py)
-    duracao_dias         INT,                           -- coluna calculada (2_transformar.py)
+    valor_total          DECIMAL(12,2),
+    duracao_dias         INT,
     CONSTRAINT pk_viagem PRIMARY KEY (id_viagem),
-    CONSTRAINT chk_viagem_diarias CHECK (valor_diarias >= 0)  -- constraint extra 2 (CHECK)
+    CONSTRAINT chk_viagem_diarias CHECK (valor_diarias >= 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE silver_pagamento (
@@ -147,12 +119,12 @@ CREATE TABLE silver_pagamento (
     num_proposta        VARCHAR(20),
     nome_orgao_pagador  VARCHAR(255),
     nome_ug_pagadora    VARCHAR(255),
-    tipo_pagamento      VARCHAR(50)   NOT NULL,         -- constraint extra 1 (NOT NULL)
+    tipo_pagamento      VARCHAR(50)   NOT NULL,
     valor               DECIMAL(10,2),
     CONSTRAINT pk_pagamento PRIMARY KEY (id_pagamento),
     CONSTRAINT fk_pagamento_viagem
         FOREIGN KEY (id_viagem) REFERENCES silver_viagem (id_viagem),
-    CONSTRAINT chk_pagamento_valor CHECK (valor >= 0)   -- constraint extra 2 (CHECK)
+    CONSTRAINT chk_pagamento_valor CHECK (valor >= 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE silver_passagem (
@@ -171,8 +143,8 @@ CREATE TABLE silver_passagem (
     CONSTRAINT pk_passagem PRIMARY KEY (id_passagem),
     CONSTRAINT fk_passagem_viagem
         FOREIGN KEY (id_viagem) REFERENCES silver_viagem (id_viagem),
-    CONSTRAINT chk_passagem_valor CHECK (valor_passagem >= 0),  -- constraint extra 1 (CHECK)
-    CONSTRAINT chk_passagem_taxa  CHECK (taxa_servico   >= 0)   -- constraint extra 2 (CHECK)
+    CONSTRAINT chk_passagem_valor CHECK (valor_passagem >= 0),
+    CONSTRAINT chk_passagem_taxa  CHECK (taxa_servico   >= 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE silver_trecho (
@@ -190,6 +162,6 @@ CREATE TABLE silver_trecho (
     CONSTRAINT pk_trecho PRIMARY KEY (id_trecho),
     CONSTRAINT fk_trecho_viagem
         FOREIGN KEY (id_viagem) REFERENCES silver_viagem (id_viagem),
-    CONSTRAINT chk_trecho_diarias CHECK (numero_diarias >= 0),      -- constraint extra 1 (CHECK)
-    CONSTRAINT uq_trecho_seq UNIQUE (id_viagem, sequencia_trecho)   -- constraint extra 2 (UNIQUE)
+    CONSTRAINT chk_trecho_diarias CHECK (numero_diarias >= 0),
+    CONSTRAINT uq_trecho_seq UNIQUE (id_viagem, sequencia_trecho)
 ) ENGINE=InnoDB;
