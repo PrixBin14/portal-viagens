@@ -58,11 +58,11 @@ DRIVE_FILE_ID = "1R6re1574aCeqNfwJXQ_T7BwHCEsPfgvc"
 # Tamanho do bloco de leitura/insercao (numero de linhas por vez).
 
 TAMANHO_BLOCO = 50_000
-
+TAMANHO_LOTE_INSERCAO = 2_000
 # ---------------------------------------------------------------------------
 # Mapeamento: cada arquivo CSV dentro do .zip -> tabela RAW correspondente
 # (o nome do CSV usa o ANO como prefixo, ex.: 2025_Viagem.csv)
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------mv -f ~/Downloads/1_extrair.py .
 ARQUIVOS = {
     "viagem":     {"csv": f"{ANO}_Viagem.csv",     "tabela_raw": "raw_viagem"},
     "pagamento":  {"csv": f"{ANO}_Pagamento.csv",  "tabela_raw": "raw_pagamento"},

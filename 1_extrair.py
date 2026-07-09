@@ -54,7 +54,9 @@ def carregar_raw(conexao, info):
         placeholders = ", ".join(["%s"] * n_colunas)
         sql_insert = f"INSERT INTO {tabela} VALUES ({placeholders})"
         linhas = [tupla for tupla in bloco.itertuples(index=False, name=None)]
-        banco.inserir_em_lote(conexao, sql_insert, linhas)
+        for inicio in range(0, len(linhas), config.TAMANHO_LOTE_INSERCAO):
+            sublote = linhas[inicio:inicio + config.TAMANHO_LOTE_INSERCAO]
+            banco.inserir_em_lote(conexao, sql_insert, sublote)
         total += len(linhas)
         print(f"  [{tabela}] {total} linhas carregadas...")
     print(f"[{tabela}] OK - total de {total} linhas.")
