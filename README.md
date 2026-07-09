@@ -1,3 +1,6 @@
+# Acadêmica: Priscila Campagnolo Ferreira
+# Análise de dados T1
+
 # Portal Viagens — Pipeline de Dados (Arquitetura Medallion)
 
 Pipeline de dados que **extrai, limpa e analisa** os dados de *Viagens a Serviço*
